@@ -1,5 +1,3 @@
-# extensionCopyLoad
-Save Copy in browser
 # CopyLoad - Chrome Extension
 
 <div align="center">
