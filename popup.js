@@ -221,11 +221,11 @@ function setupEventListeners() {
     
     // Author links
     authorName.addEventListener('click', () => {
-        chrome.tabs.create({ url: 'https://facebook.com/anhhackta' });
+        chrome.tabs.create({ url: 'https://www.facebook.com/anhhackta.official' });
     });
     
     supportLink.addEventListener('click', () => {
-        chrome.tabs.create({ url: 'https://paypal.me/anhhackta' });
+        chrome.tabs.create({ url: 'http://paypal.me/bahoang2k2' });
     });
     
     // Clear all modal
