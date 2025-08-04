@@ -11,7 +11,11 @@
   [![Language](https://img.shields.io/badge/Language-Vietnamese-red.svg)](README.md)
   [![Language](https://img.shields.io/badge/Language-English-blue.svg)](README_EN.md)
 </div>
-
+<p align="center">
+Vietnamese | <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README_EN.md">English</a> |
+  <!-- Keep these links. Translations will automatically update with the README. -->
+  <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README_JP.md">日本語</a>
+</p>
 ---
 
 ## 🌟 Tính năng nổi bật
