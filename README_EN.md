@@ -11,7 +11,9 @@
   [![Language](https://img.shields.io/badge/Language-Vietnamese-red.svg)](README.md)
   [![Language](https://img.shields.io/badge/Language-English-blue.svg)](README_EN.md)
 </div>
-
+<p align="center">
+<a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README.md">Vietnamese</a > | English
+</p >
 ---
 
 ## 🌟 Key Features
