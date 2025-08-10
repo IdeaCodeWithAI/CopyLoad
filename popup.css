@@ -19,12 +19,18 @@ body {
     --text-secondary: #495057;
     --text-muted: #6c757d;
     --border-color: #e9ecef;
-    --header-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --header-bg: #2c3e50;
     --btn-primary: #6366f1;
     --btn-success: #10b981;
     --btn-danger: #ef4444;
     --btn-warning: #f59e0b;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    
+    /* New gradient button colors - darker */
+    --btn-download-gradient-from: #4a90e2;
+    --btn-download-gradient-to: #50c878;
+    --btn-clear-gradient-from: #4a90e2;
+    --btn-clear-gradient-to: #50c878;
 }
 
 [data-theme="dark"] {
@@ -34,12 +40,18 @@ body {
     --text-secondary: #e0e0e0;
     --text-muted: #a0a0a0;
     --border-color: #404040;
-    --header-gradient: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    --header-bg: #2c3e50;
     --btn-primary: #8b5cf6;
     --btn-success: #34d399;
     --btn-danger: #f87171;
     --btn-warning: #fbbf24;
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    
+    /* New gradient button colors for dark mode - darker */
+    --btn-download-gradient-from: #4a90e2;
+    --btn-download-gradient-to: #50c878;
+    --btn-clear-gradient-from: #4a90e2;
+    --btn-clear-gradient-to: #50c878;
 }
 
 [data-theme="system"] {
@@ -54,17 +66,50 @@ body {
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .header {
-    background: var(--header-gradient);
+    background: var(--header-bg);
     color: white;
     padding: 16px 20px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: relative;
+    overflow: visible;
+}
+
+/* Star effect for header */
+.header::before {
+    content: "⭐";
+    position: absolute;
+    top: 10px;
+    left: 50px;
+    font-size: 12px;
+    opacity: 0.6;
+    animation: twinkle 2s infinite;
+}
+
+.header::after {
+    content: "🎮";
+    position: absolute;
+    top: 15px;
+    right: 80px;
+    font-size: 14px;
+    opacity: 0.7;
+    animation: bounce 3s infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
 }
 
 .header-left {
@@ -73,21 +118,81 @@ body {
     gap: 12px;
 }
 
-.logo {
-    width: 24px;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
+/* New brand logo styles */
+.brand-logo-container {
+    position: relative;
+}
+
+.brand-logo {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #00d4ff, #0099cc, #0066ff);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    transition: all 0.5s ease;
+    transform: rotate(12deg);
+    position: relative;
+    overflow: hidden;
 }
 
-.header-title {
+.brand-logo:hover {
+    transform: rotate(0deg) scale(1.1);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+}
+
+.logo-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 2;
+}
+
+.logo-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.logo-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: #ff6b6b;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.7; }
+}
+
+.brand-text-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.brand-name {
     font-size: 18px;
     font-weight: 600;
+    color: white;
+    margin: 0;
+}
+
+.brand-title {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
     margin: 0;
 }
 
@@ -104,7 +209,7 @@ body {
 .dropdown-btn {
     background: rgba(255, 255, 255, 0.2);
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     padding: 4px 6px;
     color: white;
     cursor: pointer;
@@ -113,8 +218,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
 }
 
 .dropdown-btn:hover {
@@ -125,11 +230,12 @@ body {
     display: none;
     position: absolute;
     right: 0;
+    top: 100%;
     background: var(--bg-primary);
-    min-width: 80px;
+    width: 32px;
     box-shadow: var(--shadow);
     border: 1px solid var(--border-color);
-    border-radius: 6px;
+    border-radius: 4px;
     z-index: 1000;
     margin-top: 4px;
 }
@@ -139,16 +245,20 @@ body {
 }
 
 .dropdown-item {
-    padding: 4px 8px;
+    padding: 0;
     color: var(--text-primary);
     text-decoration: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 2px;
     font-size: 10px;
     cursor: pointer;
     transition: background 0.2s ease;
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    border-radius: 4px;
 }
 
 .dropdown-item:hover {
@@ -264,6 +374,30 @@ body {
     font-weight: 500;
     min-width: 40px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.clipboard-counter::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(to right, var(--btn-primary-gradient-from), var(--btn-primary-gradient-to));
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.clipboard-counter:hover::before {
+    opacity: 1;
+}
+
+.clipboard-counter > * {
+    position: relative;
+    z-index: 2;
 }
 
 .text-list {
@@ -318,32 +452,51 @@ body {
 .btn {
     padding: 4px 8px;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 11px;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 4px;
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.btn:hover::before {
+    opacity: 1;
+}
+
+.btn > * {
+    position: relative;
+    z-index: 2;
 }
 
 .btn-copy {
     background: var(--btn-success);
-    color: white;
-}
-
-.btn-copy:hover {
-    opacity: 0.8;
+    --gradient-from: var(--btn-success-gradient-from);
+    --gradient-to: var(--btn-success-gradient-to);
 }
 
 .btn-delete {
     background: var(--btn-danger);
-    color: white;
-}
-
-.btn-delete:hover {
-    opacity: 0.8;
+    --gradient-from: var(--btn-danger-gradient-from);
+    --gradient-to: var(--btn-danger-gradient-to);
 }
 
 .footer {
@@ -363,7 +516,7 @@ body {
     flex: 1;
     padding: 10px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
@@ -371,25 +524,38 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: background 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    color: white;
 }
 
+/* Download and Clear buttons already have gradient background, no need for hover overlay */
+
 .download-btn {
-    background: var(--btn-primary);
-    color: white;
+    background: linear-gradient(to right, var(--btn-download-gradient-from), var(--btn-download-gradient-to));
+    --gradient-from: var(--btn-download-gradient-from);
+    --gradient-to: var(--btn-download-gradient-to);
+    border: none;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
 }
 
 .download-btn:hover {
-    opacity: 0.8;
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+    transform: translateY(-2px);
 }
 
 .clear-all-btn {
-    background: var(--btn-danger);
-    color: white;
+    background: linear-gradient(to right, var(--btn-clear-gradient-from), var(--btn-clear-gradient-to));
+    --gradient-from: var(--btn-clear-gradient-from);
+    --gradient-to: var(--btn-clear-gradient-to);
+    border: none;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
 }
 
 .clear-all-btn:hover {
-    opacity: 0.8;
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+    transform: translateY(-2px);
 }
 
 .author {
@@ -484,11 +650,35 @@ body {
 .modal-btn {
     padding: 8px 16px;
     border: none;
-    border-radius: 8px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    transition: opacity 0.2s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: linear-gradient(to right, var(--gradient-from), var(--gradient-to));
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+}
+
+.modal-btn:hover::before {
+    opacity: 1;
+}
+
+.modal-btn > * {
+    position: relative;
+    z-index: 2;
 }
 
 .modal-btn-cancel {
@@ -499,10 +689,8 @@ body {
 .modal-btn-confirm {
     background: var(--btn-danger);
     color: white;
-}
-
-.modal-btn:hover {
-    opacity: 0.8;
+    --gradient-from: var(--btn-danger-gradient-from);
+    --gradient-to: var(--btn-danger-gradient-to);
 }
 
 /* Scrollbar styling */
