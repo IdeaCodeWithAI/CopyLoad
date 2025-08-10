@@ -1,3 +1,9 @@
+// Cache settings để tối ưu hiệu suất
+let enableCtrlC = true;
+let enablePersistent = true;
+let currentThemeMode = 'light';
+let currentLanguage = 'vi';
+
 // DOM elements
 const textList = document.getElementById('textList');
 const toggleCtrlC = document.getElementById('toggleCtrlC');
@@ -18,12 +24,7 @@ const confirmClear = document.getElementById('confirmClear');
 const authorName = document.getElementById('authorName');
 const supportLink = document.getElementById('supportLink');
 
-// Theme management
-let currentThemeMode = 'light';
-const themes = ['light', 'dark', 'system'];
-
 // Language management
-let currentLanguage = 'vi';
 const languages = {
     vi: {
         searchPlaceholder: 'Tìm kiếm clipboard...',
@@ -46,9 +47,6 @@ const languages = {
         noSearchResults: 'Không tìm thấy kết quả',
         clearAllSuccess: 'Đã xóa tất cả clipboard!',
         clearAllError: 'Lỗi khi xóa tất cả clipboard!',
-        light: 'Sáng',
-        dark: 'Tối',
-        system: 'Thiết bị',
         temp: 'temp'
     },
     en: {
@@ -72,48 +70,60 @@ const languages = {
         noSearchResults: 'No results found',
         clearAllSuccess: 'All clipboards cleared!',
         clearAllError: 'Error clearing all clipboards!',
-        light: 'Light',
-        dark: 'Dark',
-        system: 'System',
         temp: 'temp'
     }
 };
 
 // Load settings khi popup mở
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadSettings();
-    await loadTheme();
-    await loadLanguage();
-    await loadTextList();
+    await loadAllSettings();
     setupEventListeners();
+    await loadTextList();
 });
 
-// Load settings từ storage
-async function loadSettings() {
+// Load tất cả settings một lần
+async function loadAllSettings() {
     try {
         const result = await chrome.storage.local.get(['enableCtrlC', 'enablePersistent', 'theme', 'language']);
-        toggleCtrlC.checked = result.enableCtrlC !== false; // Mặc định true
-        togglePersistent.checked = result.enablePersistent !== false; // Mặc định true
+        
+        // Cache settings
+        enableCtrlC = result.enableCtrlC !== false;
+        enablePersistent = result.enablePersistent !== false;
         currentThemeMode = result.theme || 'light';
         currentLanguage = result.language || 'vi';
+        
+        // Apply settings
+        toggleCtrlC.checked = enableCtrlC;
+        togglePersistent.checked = enablePersistent;
+        applyTheme(currentThemeMode);
+        updateThemeButton();
+        updateLanguageUI();
+        
+        // Listen for settings changes
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'local') {
+                if ('enableCtrlC' in changes) {
+                    enableCtrlC = changes.enableCtrlC.newValue !== false;
+                    toggleCtrlC.checked = enableCtrlC;
+                }
+                if ('enablePersistent' in changes) {
+                    enablePersistent = changes.enablePersistent.newValue !== false;
+                    togglePersistent.checked = enablePersistent;
+                }
+                if ('theme' in changes) {
+                    currentThemeMode = changes.theme.newValue || 'light';
+                    applyTheme(currentThemeMode);
+                    updateThemeButton();
+                }
+                if ('language' in changes) {
+                    currentLanguage = changes.language.newValue || 'vi';
+                    updateLanguageUI();
+                }
+            }
+        });
     } catch (error) {
         console.error('Lỗi khi load settings:', error);
     }
-}
-
-// Load theme
-async function loadTheme() {
-    const savedTheme = await chrome.storage.local.get(['theme']);
-    currentThemeMode = savedTheme.theme || 'light';
-    applyTheme(currentThemeMode);
-    updateThemeButton();
-}
-
-// Load language
-async function loadLanguage() {
-    const savedLang = await chrome.storage.local.get(['language']);
-    currentLanguage = savedLang.language || 'vi';
-    updateLanguageUI();
 }
 
 // Apply theme
@@ -127,7 +137,7 @@ function applyTheme(theme) {
 
 // Update theme button
 function updateThemeButton() {
-    const icons = { light: '☀️', dark: '🌙', system: '🖥️' };
+    const icons = { light: '🌞', dark: '🌙', system: '🖥️' };
     currentTheme.textContent = icons[currentThemeMode] || '🌙';
 }
 
@@ -137,8 +147,9 @@ function updateLanguageUI() {
     searchInput.placeholder = languages[currentLanguage].searchPlaceholder;
     
     // Update toggle texts
-    document.querySelector('.toggle-text').textContent = languages[currentLanguage].saveCtrlC;
-    document.querySelectorAll('.toggle-text')[1].textContent = languages[currentLanguage].saveToDevice;
+    const toggleTexts = document.querySelectorAll('.toggle-text');
+    if (toggleTexts[0]) toggleTexts[0].textContent = languages[currentLanguage].saveCtrlC;
+    if (toggleTexts[1]) toggleTexts[1].textContent = languages[currentLanguage].saveToDevice;
     
     // Update button texts
     downloadBtn.innerHTML = `
@@ -158,22 +169,16 @@ function updateLanguageUI() {
         ${languages[currentLanguage].clearAll}
     `;
     
-    // Update dropdown items - theme dropdown only shows icons
-    const themeItems = themeContent.querySelectorAll('.dropdown-item');
-    themeItems[0].textContent = '☀️';
-    themeItems[1].textContent = '🌙';
-    themeItems[2].textContent = '🖥️';
-    
     // Update modal texts
     const modalTitle = clearAllModal.querySelector('.modal-title');
     const modalText = clearAllModal.querySelector('.modal-text');
     const cancelBtn = clearAllModal.querySelector('#cancelClear');
     const confirmBtn = clearAllModal.querySelector('#confirmClear');
     
-    modalTitle.textContent = languages[currentLanguage].confirmClearTitle;
-    modalText.textContent = languages[currentLanguage].confirmClearText;
-    cancelBtn.textContent = languages[currentLanguage].cancel;
-    confirmBtn.textContent = languages[currentLanguage].confirm;
+    if (modalTitle) modalTitle.textContent = languages[currentLanguage].confirmClearTitle;
+    if (modalText) modalText.textContent = languages[currentLanguage].confirmClearText;
+    if (cancelBtn) cancelBtn.textContent = languages[currentLanguage].cancel;
+    if (confirmBtn) confirmBtn.textContent = languages[currentLanguage].confirm;
 }
 
 // Setup event listeners
@@ -187,10 +192,7 @@ function setupEventListeners() {
     themeContent.addEventListener('click', async (e) => {
         if (e.target.classList.contains('dropdown-item')) {
             const theme = e.target.getAttribute('data-theme');
-            currentThemeMode = theme;
-            applyTheme(currentThemeMode);
-            updateThemeButton();
-            await chrome.storage.local.set({ theme: currentThemeMode });
+            await chrome.storage.local.set({ theme });
             themeContent.classList.remove('show');
         }
     });
@@ -204,9 +206,7 @@ function setupEventListeners() {
     languageContent.addEventListener('click', async (e) => {
         if (e.target.classList.contains('dropdown-item')) {
             const lang = e.target.getAttribute('data-lang');
-            currentLanguage = lang;
-            updateLanguageUI();
-            await chrome.storage.local.set({ language: currentLanguage });
+            await chrome.storage.local.set({ language: lang });
             languageContent.classList.remove('show');
         }
     });
@@ -248,28 +248,39 @@ function setupEventListeners() {
             clearAllModal.style.display = 'none';
         }
     });
+    
+    // Save settings khi toggle thay đổi
+    toggleCtrlC.addEventListener('change', async () => {
+        await chrome.storage.local.set({ enableCtrlC: toggleCtrlC.checked });
+    });
+    
+    togglePersistent.addEventListener('change', async () => {
+        await chrome.storage.local.set({ enablePersistent: togglePersistent.checked });
+        await loadTextList();
+    });
+    
+    // Search functionality
+    searchInput.addEventListener('input', async () => {
+        await loadTextList();
+    });
+    
+    // Download button
+    downloadBtn.addEventListener('click', downloadAllTexts);
+    
+    // Reload danh sách khi popup được focus
+    window.addEventListener('focus', loadTextList);
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        if (currentThemeMode === 'system') {
+            applyTheme('system');
+        }
+    });
 }
-
-// Save settings khi toggle thay đổi
-toggleCtrlC.addEventListener('change', async () => {
-    await chrome.storage.local.set({ enableCtrlC: toggleCtrlC.checked });
-});
-
-togglePersistent.addEventListener('change', async () => {
-    await chrome.storage.local.set({ enablePersistent: togglePersistent.checked });
-    // Reload danh sách khi toggle thay đổi để cập nhật hiển thị
-    await loadTextList();
-});
-
-// Search functionality
-searchInput.addEventListener('input', async () => {
-    await loadTextList();
-});
 
 // Load và hiển thị danh sách text
 async function loadTextList() {
     try {
-        // Lấy cả temp và persistent text
         const [tempResult, persistentResult] = await Promise.all([
             chrome.storage.session.get(['clipboard_temp']),
             chrome.storage.local.get(['clipboard_persistent'])
@@ -299,7 +310,7 @@ async function loadTextList() {
     }
 }
 
-// Hiển thị danh sách text
+// Hiển thị danh sách text với chiều cao đồng nhất
 function displayTextList(texts, tempTexts) {
     if (texts.length === 0) {
         textList.innerHTML = `
@@ -318,14 +329,15 @@ function displayTextList(texts, tempTexts) {
     }
 
     textList.innerHTML = texts.map((text, index) => {
-        // Chỉ hiển thị tag temp cho những text trong temp storage
         const isTemp = tempTexts.includes(text);
         const tempTag = isTemp ? `<div class="temp-tag">${languages[currentLanguage].temp}</div>` : '';
         
         return `
             <div class="text-item" data-text="${encodeURIComponent(text)}">
                 ${tempTag}
-                <div class="text-content" title="${text}">${truncateText(text, 50)}</div>
+                <div class="text-content" title="${text}">
+                    <div class="text-line">${truncateText(text, 45)}</div>
+                </div>
                 <div class="text-actions">
                     <button class="btn btn-copy" data-text="${encodeURIComponent(text)}">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -364,7 +376,7 @@ function displayTextList(texts, tempTexts) {
     });
 }
 
-// Cắt text nếu quá dài
+// Cắt text nếu quá dài - tối ưu cho hiển thị 1 dòng
 function truncateText(text, maxLength) {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -375,8 +387,6 @@ async function copyText(encodedText) {
     try {
         const text = decodeURIComponent(encodedText);
         await navigator.clipboard.writeText(text);
-        
-        // Hiển thị thông báo thành công
         showNotification(languages[currentLanguage].copySuccess);
     } catch (error) {
         console.error('Lỗi khi copy text:', error);
@@ -389,7 +399,6 @@ async function deleteText(encodedText) {
     try {
         const text = decodeURIComponent(encodedText);
         
-        // Xóa khỏi cả temp và persistent storage
         const [tempResult, persistentResult] = await Promise.all([
             chrome.storage.session.get(['clipboard_temp']),
             chrome.storage.local.get(['clipboard_persistent'])
@@ -398,17 +407,14 @@ async function deleteText(encodedText) {
         const tempTexts = tempResult.clipboard_temp || [];
         const persistentTexts = persistentResult.clipboard_persistent || [];
 
-        // Lọc bỏ text cần xóa
         const newTempTexts = tempTexts.filter(t => t !== text);
         const newPersistentTexts = persistentTexts.filter(t => t !== text);
 
-        // Lưu lại
         await Promise.all([
             chrome.storage.session.set({ clipboard_temp: newTempTexts }),
             chrome.storage.local.set({ clipboard_persistent: newPersistentTexts })
         ]);
 
-        // Reload danh sách
         await loadTextList();
         showNotification(languages[currentLanguage].deleteSuccess);
     } catch (error) {
@@ -434,7 +440,7 @@ async function clearAllClipboards() {
 }
 
 // Download tất cả text
-downloadBtn.addEventListener('click', async () => {
+async function downloadAllTexts() {
     try {
         const [tempResult, persistentResult] = await Promise.all([
             chrome.storage.session.get(['clipboard_temp']),
@@ -444,7 +450,6 @@ downloadBtn.addEventListener('click', async () => {
         const tempTexts = tempResult.clipboard_temp || [];
         const persistentTexts = persistentResult.clipboard_persistent || [];
         
-        // Kết hợp và loại bỏ trùng lặp
         const allTexts = [...new Set([...tempTexts, ...persistentTexts])];
         
         if (allTexts.length === 0) {
@@ -452,10 +457,8 @@ downloadBtn.addEventListener('click', async () => {
             return;
         }
 
-        // Tạo nội dung file
         const content = allTexts.map((text, index) => `${index + 1}. ${text}`).join('\n\n');
         
-        // Tạo và download file
         const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -471,11 +474,10 @@ downloadBtn.addEventListener('click', async () => {
         console.error('Lỗi khi download:', error);
         showNotification(languages[currentLanguage].downloadError, 'error');
     }
-});
+}
 
 // Hiển thị thông báo
 function showNotification(message, type = 'success') {
-    // Tạo notification element
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -492,7 +494,6 @@ function showNotification(message, type = 'success') {
     `;
     notification.textContent = message;
     
-    // Thêm CSS animation
     const style = document.createElement('style');
     style.textContent = `
         @keyframes slideIn {
@@ -504,19 +505,8 @@ function showNotification(message, type = 'success') {
     
     document.body.appendChild(notification);
     
-    // Tự động xóa sau 3 giây
     setTimeout(() => {
         notification.remove();
         style.remove();
     }, 3000);
-}
-
-// Reload danh sách khi popup được focus
-window.addEventListener('focus', loadTextList);
-
-// Listen for system theme changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (currentThemeMode === 'system') {
-        applyTheme('system');
-    }
-}); 
+} 

@@ -1,3 +1,25 @@
+// Cache settings để tối ưu hiệu suất
+let enableCtrlC = true;
+let enablePersistent = true;
+
+// Load settings ban đầu
+chrome.storage.local.get(['enableCtrlC', 'enablePersistent']).then(res => {
+  enableCtrlC = res.enableCtrlC !== false;
+  enablePersistent = res.enablePersistent !== false;
+});
+
+// Lắng nghe thay đổi settings
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local') {
+    if ('enableCtrlC' in changes) {
+      enableCtrlC = changes.enableCtrlC.newValue !== false;
+    }
+    if ('enablePersistent' in changes) {
+      enablePersistent = changes.enablePersistent.newValue !== false;
+    }
+  }
+});
+
 // Khởi tạo context menu khi extension được cài đặt
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -20,55 +42,52 @@ async function saveTextToPersistent(text) {
     const result = await chrome.storage.local.get(['clipboard_persistent']);
     const persistentTexts = result.clipboard_persistent || [];
     
-    // Kiểm tra xem text đã tồn tại chưa
-    if (!persistentTexts.includes(text)) {
-      persistentTexts.unshift(text); // Thêm vào đầu danh sách
-      
-      // Không giới hạn số lượng items
-      await chrome.storage.local.set({ clipboard_persistent: persistentTexts });
-    }
+    // Loại bỏ text cũ nếu đã tồn tại (tránh duplicate)
+    const filteredTexts = persistentTexts.filter(item => item !== text);
+    
+    // Thêm text mới vào đầu danh sách (mới nhất ở trên)
+    filteredTexts.unshift(text);
+    
+    await chrome.storage.local.set({ clipboard_persistent: filteredTexts });
   } catch (error) {
-    console.error('Lỗi khi lưu text:', error);
+    console.error('Lỗi khi lưu text persistent:', error);
+  }
+}
+
+// Lưu text vào storage tạm thời
+async function saveTextToTemp(text) {
+  try {
+    const result = await chrome.storage.session.get(['clipboard_temp']);
+    const tempTexts = result.clipboard_temp || [];
+    
+    // Loại bỏ text cũ nếu đã tồn tại
+    const filteredTexts = tempTexts.filter(item => item !== text);
+    
+    // Thêm text mới vào đầu danh sách (mới nhất ở trên)
+    filteredTexts.unshift(text);
+    
+    await chrome.storage.session.set({ clipboard_temp: filteredTexts });
+  } catch (error) {
+    console.error('Lỗi khi lưu text temp:', error);
   }
 }
 
 // Lắng nghe message từ content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "saveTempText") {
-    saveTextToTemp(request.text);
+    // Kiểm tra cache thay vì await
+    if (!enableCtrlC) {
+      sendResponse({ success: false });
+      return;
+    }
+
+    // Quyết định lưu vào đâu dựa trên cache
+    if (enablePersistent) {
+      saveTextToPersistent(request.text);
+    } else {
+      saveTextToTemp(request.text);
+    }
+    
     sendResponse({ success: true });
   }
-});
-
-// Lưu text vào storage (temp hoặc persistent tùy theo toggle)
-async function saveTextToTemp(text) {
-  try {
-    // Kiểm tra xem tính năng Ctrl+C có được bật không
-    const settings = await chrome.storage.local.get(['enableCtrlC']);
-    if (settings.enableCtrlC === false) {
-      return; // Không lưu nếu tính năng bị tắt
-    }
-
-    // Kiểm tra xem tính năng persistent có được bật không
-    const persistentSettings = await chrome.storage.local.get(['enablePersistent']);
-    
-    if (persistentSettings.enablePersistent !== false) {
-      // Nếu toggle "Lưu vào máy" BẬT -> lưu vào persistent storage (tag real)
-      await saveTextToPersistent(text);
-    } else {
-      // Nếu toggle "Lưu vào máy" TẮT -> lưu vào temp storage (tag temp)
-      const result = await chrome.storage.session.get(['clipboard_temp']);
-      const tempTexts = result.clipboard_temp || [];
-      
-      // Kiểm tra xem text đã tồn tại chưa
-      if (!tempTexts.includes(text)) {
-        tempTexts.unshift(text); // Thêm vào đầu danh sách
-        
-        // Không giới hạn số lượng items
-        await chrome.storage.session.set({ clipboard_temp: tempTexts });
-      }
-    }
-  } catch (error) {
-    console.error('Lỗi khi lưu text tạm:', error);
-  }
-} 
+}); 
