@@ -44,7 +44,7 @@
 - **Unlimited**: Save unlimited clipboards
 
 ---
-
+![Gif showing the conversion](./tutorial.gif)
 ## 📦 Installation
 
 ### Method 1: Install from ZIP file (Recommended)
