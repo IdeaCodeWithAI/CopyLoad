@@ -17,7 +17,6 @@ Vietnamese | <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/
   <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/README_JP.md">日本語</a>
 </p>
 ---
-
 ## 🌟 Tính năng nổi bật
 
 ### ✨ **Lưu trữ thông minh**
@@ -46,6 +45,7 @@ Vietnamese | <a href="https://github.com/anhhackta/CopyLoad-Extension/blob/main/
 - **Không giới hạn**: Lưu vô hạn clipboard
 
 ---
+![Gif showing the conversion](./tutorial.gif)
 
 ## 📦 Cài đặt
 
