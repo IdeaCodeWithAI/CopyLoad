@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CopyLoad – Clipboard Manager Extension</title>
+    <meta name="description" content="CopyLoad – Lưu và quản lý văn bản đã copy. Tải về và xem hướng dẫn cài đặt cho Chrome/Edge." />
+
+    <link rel="icon" href="icons/icon128.png" />
+    <meta property="og:title" content="CopyLoad – Clipboard Manager" />
+    <meta property="og:description" content="Lưu và quản lý văn bản đã copy. Tải về và xem hướng dẫn cài đặt cho Chrome/Edge." />
+    <meta property="og:image" content="icons/icon128.png" />
+    <meta name="theme-color" content="#0f172a" />
+
+    <style>
+      :root {
+        --bg: #0b1220;
+        --panel: #0f172a;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --card: #111827;
+        --border: #1f2937;
+        --primary-from: #6366f1;
+        --primary-to: #22d3ee;
+        --accent-from: #ef4444;
+        --accent-to: #f59e0b;
+        --success-from: #10b981;
+        --success-to: #22d3ee;
+      }
+      [data-theme="light"] {
+        --bg: #f3f4f6;
+        --panel: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --card: #ffffff;
+        --border: #e5e7eb;
+      }
+      html, body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .container {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--primary-from), var(--primary-to));
+        display: grid;
+        place-items: center;
+        color: white;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn, a.btn {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        color: var(--text);
+        background: var(--panel);
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.15s ease, border-color 0.2s ease;
+        overflow: hidden;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btn:active { transform: translateY(0); }
+      .btn.primary { color: white; border-color: transparent; }
+      .btn.primary::before {
+        content: "";
+        position: absolute; inset: 0; z-index: 0; opacity: 0.9;
+        background: linear-gradient(90deg, var(--primary-from), var(--primary-to));
+      }
+      .btn.primary > * { position: relative; z-index: 1; }
+      .btn.accent { color: white; border-color: transparent; }
+      .btn.accent::before {
+        content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0.95;
+        background: linear-gradient(90deg, var(--accent-from), var(--accent-to));
+      }
+      .btn.success { color: white; border-color: transparent; }
+      .btn.success::before {
+        content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0.95;
+        background: linear-gradient(90deg, var(--success-from), var(--success-to));
+      }
+      .hero {
+        margin-top: 8px;
+        background: radial-gradient(1200px 400px at -10% -20%, rgba(99,102,241,0.25), transparent 60%),
+                    radial-gradient(900px 300px at 110% -10%, rgba(34,211,238,0.18), transparent 60%),
+                    var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 28px;
+      }
+      .hero h2 { margin: 0 0 8px; font-size: 28px; }
+      .hero p { margin: 0; color: var(--muted); }
+      .cta { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
+
+      .section { margin-top: 28px; }
+      .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+      .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+      .card h3 { margin: 0 0 8px; font-size: 16px; }
+      .card p  { margin: 0; color: var(--muted); }
+      .steps { margin: 8px 0 0 18px; color: var(--muted); }
+      .steps li { margin: 6px 0; }
+
+      .media { margin-top: 16px; display: grid; grid-template-columns: 1fr; gap: 12px; }
+      .media img, .media video { width: 100%; border-radius: 12px; border: 1px solid var(--border); background: #000; }
+
+      .footer { margin: 36px 0 12px; color: var(--muted); font-size: 13px; text-align: center; }
+      .footer a { color: inherit; }
+
+      .lang, .theme { width: 40px; height: 40px; border-radius: 8px; }
+      .split { flex: 1 1 auto; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <div class="brand">
+          <div class="logo">CL</div>
+          <h1 id="t_brand">CopyLoad</h1>
+        </div>
+        <div class="controls">
+          <button id="btnTheme" class="btn theme" title="Theme">🌙</button>
+          <button id="btnLang" class="btn lang" title="VN/EN">VN</button>
+        </div>
+      </header>
+
+      <section class="hero">
+        <h2 id="t_title">Lưu mọi lần copy, quản lý cực nhẹ</h2>
+        <p id="t_sub">CopyLoad giúp bạn lưu và tìm lại đoạn văn bản đã copy, hỗ trợ Chrome và Edge.</p>
+        <div class="cta">
+          <a id="btnDownloadZip" class="btn primary" href="#" target="_blank" rel="noopener">
+            <span id="t_download_zip">Tải bản ZIP</span>
+          </a>
+          <a id="btnChrome" class="btn success" href="#" target="_blank" rel="noopener">
+            <span>Chrome Web Store</span>
+          </a>
+          <a id="btnEdge" class="btn success" href="#" target="_blank" rel="noopener">
+            <span>Edge Add-ons</span>
+          </a>
+          <span class="split"></span>
+          <a id="btnRepo" class="btn" href="#" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="cards">
+          <div class="card">
+            <h3 id="t_feat1_title">Tính năng chính</h3>
+            <ul class="steps" id="t_feat1_list">
+              <li>Lưu copy bằng Ctrl+C (tạm thời) và chuột phải (vĩnh viễn)</li>
+              <li>Copy/Delete nhanh từng dòng</li>
+              <li>Download toàn bộ ra .txt</li>
+              <li>Tìm kiếm, Dark/Light/System</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 id="t_feat2_title">Cài đặt nhanh (từ ZIP)</h3>
+            <ol class="steps" id="t_feat2_list">
+              <li>Giải nén file ZIP</li>
+              <li>Chrome/Edge: vào chrome://extensions</li>
+              <li>Bật Developer mode</li>
+              <li>Load unpacked → chọn thư mục đã giải nén</li>
+            </ol>
+          </div>
+          <div class="card">
+            <h3 id="t_feat3_title">Mẹo & Quyền riêng tư</h3>
+            <ul class="steps" id="t_feat3_list">
+              <li>Dữ liệu lưu trên máy bạn, không gửi lên server</li>
+              <li>Quyền tối giản: Storage + Context Menu</li>
+              <li>Hoạt động trên hầu hết trang web</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="card">
+          <h3 id="t_demo_title">Demo</h3>
+          <div class="media">
+            <img src="tutorial.gif" alt="CopyLoad tutorial" />
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div>
+          <span>©</span> <span id="t_brand2">CopyLoad</span>
+          · <a href="https://github.com/" id="t_footer_repo" target="_blank" rel="noopener">Repository</a>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      (function() {
+        const LS_THEME = 'copyload_web_theme';
+        const LS_LANG  = 'copyload_web_lang';
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        const lang = {
+          vi: {
+            brand: 'CopyLoad',
+            title: 'Lưu mọi lần copy, quản lý cực nhẹ',
+            sub: 'CopyLoad giúp bạn lưu và tìm lại đoạn văn bản đã copy, hỗ trợ Chrome và Edge.',
+            download_zip: 'Tải bản ZIP',
+            feat1_title: 'Tính năng chính',
+            feat1_list: [
+              'Lưu copy bằng Ctrl+C (tạm thời) và chuột phải (vĩnh viễn)',
+              'Copy/Delete nhanh từng dòng',
+              'Download toàn bộ ra .txt',
+              'Tìm kiếm, Dark/Light/System'
+            ],
+            feat2_title: 'Cài đặt nhanh (từ ZIP)',
+            feat2_list: [
+              'Giải nén file ZIP',
+              'Chrome/Edge: vào chrome://extensions',
+              'Bật Developer mode',
+              'Load unpacked → chọn thư mục đã giải nén'
+            ],
+            feat3_title: 'Mẹo & Quyền riêng tư',
+            feat3_list: [
+              'Dữ liệu lưu trên máy bạn, không gửi lên server',
+              'Quyền tối giản: Storage + Context Menu',
+              'Hoạt động trên hầu hết trang web'
+            ],
+            demo_title: 'Demo',
+            repo: 'Repository'
+          },
+          en: {
+            brand: 'CopyLoad',
+            title: 'Save every copy, manage with ease',
+            sub: 'CopyLoad helps you keep and find copied text, supporting Chrome and Edge.',
+            download_zip: 'Download ZIP',
+            feat1_title: 'Key Features',
+            feat1_list: [
+              'Save via Ctrl+C (temporary) and context menu (persistent)',
+              'Quick Copy/Delete per item',
+              'Export all to .txt',
+              'Search, Dark/Light/System'
+            ],
+            feat2_title: 'Quick Install (from ZIP)',
+            feat2_list: [
+              'Unzip the ZIP file',
+              'Chrome/Edge: open chrome://extensions',
+              'Enable Developer mode',
+              'Load unpacked → select the unzipped folder'
+            ],
+            feat3_title: 'Tips & Privacy',
+            feat3_list: [
+              'Data stays on your device, never sent to servers',
+              'Minimal permissions: Storage + Context Menu',
+              'Works on most websites'
+            ],
+            demo_title: 'Demo',
+            repo: 'Repository'
+          }
+        };
+
+        const els = {
+          t_brand: document.getElementById('t_brand'),
+          t_brand2: document.getElementById('t_brand2'),
+          t_title: document.getElementById('t_title'),
+          t_sub: document.getElementById('t_sub'),
+          t_download_zip: document.getElementById('t_download_zip'),
+          t_feat1_title: document.getElementById('t_feat1_title'),
+          t_feat1_list: document.getElementById('t_feat1_list'),
+          t_feat2_title: document.getElementById('t_feat2_title'),
+          t_feat2_list: document.getElementById('t_feat2_list'),
+          t_feat3_title: document.getElementById('t_feat3_title'),
+          t_feat3_list: document.getElementById('t_feat3_list'),
+          t_demo_title: document.getElementById('t_demo_title'),
+          t_footer_repo: document.getElementById('t_footer_repo'),
+          btnTheme: document.getElementById('btnTheme'),
+          btnLang: document.getElementById('btnLang'),
+          btnDownloadZip: document.getElementById('btnDownloadZip'),
+          btnRepo: document.getElementById('btnRepo'),
+          btnChrome: document.getElementById('btnChrome'),
+          btnEdge: document.getElementById('btnEdge')
+        };
+
+        function setTheme(mode) {
+          document.documentElement.setAttribute('data-theme', mode);
+          localStorage.setItem(LS_THEME, mode);
+          els.btnTheme.textContent = mode === 'dark' ? '🌞' : '🌙';
+        }
+
+        function toggleTheme() {
+          const current = document.documentElement.getAttribute('data-theme') || 'light';
+          setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        function applyLang(code) {
+          const t = lang[code] || lang.vi;
+          els.t_brand.textContent = t.brand;
+          els.t_brand2.textContent = t.brand;
+          els.t_title.textContent = t.title;
+          els.t_sub.textContent = t.sub;
+          els.t_download_zip.textContent = t.download_zip;
+          els.t_feat1_title.textContent = t.feat1_title;
+          els.t_feat1_list.innerHTML = t.feat1_list.map(item => `<li>${item}</li>`).join('');
+          els.t_feat2_title.textContent = t.feat2_title;
+          els.t_feat2_list.innerHTML = t.feat2_list.map(item => `<li>${item}</li>`).join('');
+          els.t_feat3_title.textContent = t.feat3_title;
+          els.t_feat3_list.innerHTML = t.feat3_list.map(item => `<li>${item}</li>`).join('');
+          els.t_demo_title.textContent = t.demo_title;
+          els.t_footer_repo.textContent = t.repo;
+          els.btnLang.textContent = code.toUpperCase();
+          localStorage.setItem(LS_LANG, code);
+        }
+
+        function initLinks() {
+          // TODO: Thay REPO_OWNER/REPO_NAME và phiên bản phù hợp sau khi phát hành
+          const OWNER = 'anhhackta';
+          const REPO  = 'CopyLoad-Extension';
+          const VERSION = 'Ver1.1.1';
+          const ZIP = 'CopyLoadv1.1.1.zip';
+
+          const repoUrl = `https://github.com/${OWNER}/${REPO}`;
+          const releasesUrl = `${repoUrl}/releases`;
+          const zipUrl = `${repoUrl}/releases/download/${VERSION}/${ZIP}`;
+
+          els.btnRepo.href = repoUrl;
+          els.btnDownloadZip.href = zipUrl; // trỏ tới trang Releases để người dùng chọn đúng bản
+          // els.btnDownloadZip.href = zipUrl;   // Bật dòng này khi đã có đúng đường dẫn asset
+
+          // Nếu có link Store, thay bằng URL thật
+          els.btnChrome.href = '#'; // ví dụ: https://chromewebstore.google.com/detail/xxxxxxxx
+          els.btnEdge.href   = '#'; // ví dụ: https://microsoftedge.microsoft.com/addons/detail/xxxxxxxx
+        }
+
+        // Init
+        const savedTheme = localStorage.getItem(LS_THEME) || (prefersDark ? 'dark' : 'light');
+        setTheme(savedTheme);
+        const savedLang = localStorage.getItem(LS_LANG) || 'vi';
+        applyLang(savedLang);
+        initLinks();
+
+        els.btnTheme.addEventListener('click', toggleTheme);
+        els.btnLang.addEventListener('click', () => {
+          const next = (localStorage.getItem(LS_LANG) || 'vi') === 'vi' ? 'en' : 'vi';
+          applyLang(next);
+        });
+      })();
+    </script>
+  </body>
+</html>
+
+
