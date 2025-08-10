@@ -45,7 +45,7 @@
 - **保存件数の制限なし**
 
 ---
-
+![Gif showing the conversion](./tutorial.gif)
 ## 📦 インストール方法
 
 ### 方法1：ZIPファイルからインストール（推奨）
