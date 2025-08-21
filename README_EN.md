@@ -44,7 +44,7 @@
 - **Unlimited**: Save unlimited clipboards
 
 ---
-![Gif showing the conversion](./tutorial.gif)
+[![Gif showing the conversion](https://github.com/user-attachments/assets/a27b4ebe-01f8-44df-8c4a-2400dd1aa14f)](https://github.com/user-attachments/assets/a27b4ebe-01f8-44df-8c4a-2400dd1aa14f)
 ## 📦 Installation
 
 ### Method 1: Install from ZIP file (Recommended)
